@@ -1,26 +1,16 @@
 require(jsonlite)
 require(rjsonpath)
 require(data.table)
-require(purrr)
-require(dplyr)
-require(reshape)
-
-# dev
-# document <- fromJSON(txt="test_data/{0a4dfb20-0ce5-4d55-9bd9-20122b79baf5}.json")
-# idx_bike <- which(document$RIDES$sport=="Bike")
-# document$RIDES$METRICS
-# metrics <- fromJSON(txt="test_data/{0a4dfb20-0ce5-4d55-9bd9-20122b79baf5}.json")$RIDES$METRICS
-#
-
+t1 <- Sys.time()
 # Get data into a single list
 # Test with n files in a sub folder called test_data
 setwd("/home/jasen/Personal-Work/GitHub/MscProject")
 filenames <- list.files(path = "test_data")
-idx_bike <- list()
+idx_bike <- list() # if we want to filter for "Bike" observations
 for(f in 1:length(filenames)){
   idx_bike[[f]] <- which(fromJSON(txt=paste0("test_data/",filenames[f]))$RIDES$sport == "Bike")
 }
-
+# Build all the dataframes in a list called ls_metrics
 ls_metrics <- list()
 for(f in 1:length(filenames)){
   ls_metrics[[f]] <- fromJSON(txt=paste0("test_data/",filenames[f]))$RIDES$METRICS[idx_bike[[f]],]
@@ -30,16 +20,12 @@ for(f in 1:length(filenames)){
   ls_metrics[[f]][["yob"]] <-  rep(fromJSON(txt=paste0("test_data/",filenames[f]))$ATHLETE$yob, length(ls_metrics[[f]][["date"]]))
   ls_metrics[[f]][["gender"]] <-  rep(fromJSON(txt=paste0("test_data/",filenames[f]))$ATHLETE$gender, length(ls_metrics[[f]][["date"]]))
 }
-
-# dt_metrics <- as.data.table(sapply(dt_metrics, unlist))
-# merged.data.frame <- Reduce(function(...) merge(..., all=T), ls_metrics)
-# i <- c("total_distance","average_speed")
-# merged_df <- ls_metrics %>% reduce(full_join, by = "i")
-# merged_df <- reshape::merge_all(ls_metrics, by=i)
-# 
-# 
-# x <- data.frame(i = c("a","b","c"), j = 1:3, stringsAsFactors=FALSE)
-# y <- data.frame(i = c("b","c","d"), k = 4:6, stringsAsFactors=FALSE)
-# z <- data.frame(i = c("c","d","a"), l = 7:9, stringsAsFactors=FALSE)
-# list(x, y, z) %>% reduce(left_join, by = "i")
-
+# Merge into a data.table
+dt_merged <- rbindlist(ls_metrics, fill = TRUE)
+# Reorder columns such that "id", "date", "sport", "yob" and "gender" are the first columns
+# setcolorder(dt_merged, c(colnames(idx_cols),colnames(dt_merged[-idx_cols]))) # this works, but only by reference...saves space but difficult to view
+idx_metadata_cols <- which(colnames(dt_merged) %in% c("date","id","sport","yob","gender"))
+idx_metric_cols <- which(!colnames(dt_merged) %in% c("date","id","sport","yob","gender"))
+dt_merged <- dt_merged[,c(idx_metadata_cols,idx_metric_cols), with=FALSE]
+t2 <- Sys.time()
+print(t2-t1)
