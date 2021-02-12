@@ -6,9 +6,9 @@ t1 <- Sys.time()
 setwd("/home/jasen/Personal-Work/GitHub/MscProject")
 filenames <- list.files(path = "test_data")
 idx_bike <- list() # if we want to filter for "Bike" observations
-for(f in 1:length(filenames)){
-  idx_bike[[f]] <- which(fromJSON(txt=paste0("test_data/",filenames[f]))$RIDES$sport == "Bike")
-}
+# for(f in 1:length(filenames)){
+#   idx_bike[[f]] <- which(fromJSON(txt=paste0("test_data/",filenames[f]))$RIDES$sport == "Bike")
+# }
 # Build all the dataframes in a list called ls_metrics
 ls_metrics <- list()
 for(f in 1:length(filenames)){
