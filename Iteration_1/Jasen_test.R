@@ -29,3 +29,39 @@ dt_merged <- dt_merged[,c(idx_metadata_cols,idx_metric_cols), with=FALSE]
 bike <- dt_merged[sport=="Bike"]
 t2 <- Sys.time()
 print(t2-t1)
+
+idx_list <- which(sapply(dt_merged, class) == "list")
+idx_list
+
+class(type.convert(dt_merged[,11]))
+
+dt_merged <- dt_merged[,c('date','id','ride_count','workout_time','time_riding','athlete_weight','total_work','average_power','nonzero_power',
+                          'max_power','cp_setting','coggan_np','coggan_if','coggan_tss','coggam_variability_index','coggan_tssperhour',
+                          'time_in_zone_P1','1s_critical_power','5s_critical_power','10s_critical_power','15s_critical_power','20s_critical_power',
+                          '30s_critical_power','1m_critical_power','2m_critical_power','3m_critical_power','5m_critical_power','8m_critical_power',
+                          '10m_critical_power','20m_critical_power','30m_critical_power','60m_critical_power','time_in_zone_L1','time_in_zone_L2',
+                          'time_in_zone_L3','time_in_zone_L4','time_in_zone_L5','time_in_zone_L6','time_in_zone_L7','1s_peak_wpk','5s_peak_wpk',
+                          '10s_peak_wpk','15s_peak_wpk','20s_peak_wpk','30s_peak_wpk','1m_peak_wpk','5m_peak_wpk','10m_peak_wpk','20m_peak_wpk',
+                          '30m_peak_wpk','60m_peak_wpk')]
+coln <- colnames(dt_merged)
+coln_len <- length(coln)
+# only include rows that have an average power value
+dt_merged <- dt_merged[!sapply(dt_merged$average_power, is.null)]
+# only include where rides are longer than 60min
+dt_merged <- dt_merged[!sapply(dt_merged$'60m_critical_power', is.null)]
+dt_merged <- dt_merged[!sapply(dt_merged$'60m_critical_power', is.na)]
+# number of rows in datafram
+dt_merged_nrow <- nrow(dt_merged)
+
+dt_merged$coggan_np <- as.numeric(unlist(lapply(dt_merged$coggan_np, `[[`, 1)))
+dt_merged$coggan_if <- as.numeric(unlist(lapply(dt_merged$coggan_if, `[[`, 1)))
+dt_merged$coggam_variability_index <- as.numeric(unlist(lapply(dt_merged$coggam_variability_index, `[[`, 1)))
+
+dt_merged$average_power <- as.numeric(unlist(lapply(dt_merged$average_power, `[[`, 1)))
+dt_merged$nonzero_power <- as.numeric(unlist(lapply(dt_merged$nonzero_power, `[[`, 1)))
+
+# remove rows with "NULL" values
+rem_idx <- which(dt_merged$coggan_tssperhour=="NULL")
+dt_merged <- dt_merged[-rem_idx]
+dt_merged$coggan_tssperhour <- as.numeric(unlist(lapply(dt_merged$coggan_tssperhour, `[[`, 1)))
+class(dt_merged$coggan_tssperhour)
