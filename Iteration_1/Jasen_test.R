@@ -61,7 +61,7 @@ dt_merged$average_power <- as.numeric(unlist(lapply(dt_merged$average_power, `[[
 dt_merged$nonzero_power <- as.numeric(unlist(lapply(dt_merged$nonzero_power, `[[`, 1)))
 
 # remove rows with "NULL" values
-rem_idx <- which(dt_merged$coggan_tssperhour=="NULL")
-dt_merged <- dt_merged[-rem_idx]
+zero_idx <- which(dt_merged$coggan_tssperhour=="NULL")
+dt_merged$coggan_tssperhour[zero_idx] <- 0
 dt_merged$coggan_tssperhour <- as.numeric(unlist(lapply(dt_merged$coggan_tssperhour, `[[`, 1)))
 class(dt_merged$coggan_tssperhour)
