@@ -7,23 +7,23 @@ require(doParallel)
 setwd("/home/jasen/Personal-Work/GitHub/MscProject/test_data")
 filenames <- list.files(path = "/home/jasen/Personal-Work/GitHub/MscProject/test_data")
 idx_bike <- list() # if we want to filter for "Bike" observations
-# t1 <- Sys.time()
-# for(f in 1:10){
-# # for(f in 520:530){
-#   if(f %% 10==0) { print(f)}
-#   try({
-#     idx_bike[[f]] <- which(fromJSON(txt=filenames[f])$RIDES$sport == "Bike" |
-#                              fromJSON(txt=filenames[f])$RIDES$sport == "VirtualRide")
-#   })
-# }
-# t2 <- Sys.time()
-# paste0("time to run bike index loop")
-# print(t2 - t1)
+t1 <- Sys.time()
+for(f in 1:10){
+# for(f in 520:530){
+  if(f %% 10==0) { print(f)}
+  try({
+    idx_bike[[f]] <- which(fromJSON(txt=filenames[f])$RIDES$sport == "Bike" |
+                             fromJSON(txt=filenames[f])$RIDES$sport == "VirtualRide")
+  })
+}
+t2 <- Sys.time()
+paste0("time to run bike index loop")
+print(t2 - t1)
 
 registerDoParallel(cores = 8)
 # registerDoSEQ()
 t1 <- Sys.time()
-idx_bike <- foreach(f = 1:length(filenames), .combine = c, .multicombine = TRUE) %dopar% {
+idx_bike <- foreach(f = 1:10, .combine = c, .multicombine = TRUE) %dopar% {
   test <- try({
     which(fromJSON(txt=filenames[f])$RIDES$sport == "Bike" |
           fromJSON(txt=filenames[f])$RIDES$sport == "VirtualRide")
@@ -37,7 +37,7 @@ print(t2 - t1)
 # Build all the dataframes in a list called ls_metrics
 # t1 <- Sys.time()
 dt_merged <- list()
-# for(f in 1:length(filenames)){
+# for(f in 1:10){
 #   if(f %% 10==0) { print(f)}
 #   try({
 #     dt_merged[[f]] <- fromJSON(txt=filenames[f])$RIDES$METRICS[idx_bike[[f]],]
@@ -49,14 +49,14 @@ dt_merged <- list()
 #   })
 # }
 
-dt_merged <- foreach(f = 1:length(filenames), .combine = c, .multicombine = TRUE) %dopar% {
+dt_merged <- foreach(f = 1:10, .combine = c, .multicombine = TRUE) %dopar% {
   test <- try({
     dt_merged <- fromJSON(txt=filenames[f])$RIDES$METRICS[idx_bike[[f]],]
     dt_merged[["date"]] <- fromJSON(txt=filenames[f])$RIDES$date[idx_bike[[f]]]
-    dt_merged[["id"]] <-  rep(fromJSON(txt=filenames[f])$ATHLETE$id, length(dt_merged[[f]][["date"]]))
+    dt_merged[["id"]] <-  filenames[f] #rep(fromJSON(txt=filenames[f])$ATHLETE$id, length(dt_merged[[f]][["date"]]))
     dt_merged[["sport"]] <- fromJSON(txt=filenames[f])$RIDES$sport[idx_bike[[f]]]
-    dt_merged[["yob"]] <-  rep(fromJSON(txt=filenames[f])$ATHLETE$yob, length(dt_merged[[f]][["date"]]))
-    dt_merged[["gender"]] <-  rep(fromJSON(txt=filenames[f])$ATHLETE$gender, length(dt_merged[[f]][["date"]]))
+    dt_merged[["yob"]] <-  fromJSON(txt=filenames[f])$ATHLETE$yob
+    dt_merged[["gender"]] <-  fromJSON(txt=filenames[f])$ATHLETE$gender
     })
   list(dt_merged)
 }
